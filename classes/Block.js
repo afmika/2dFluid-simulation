@@ -7,7 +7,7 @@ class Block {
      * This will speed up our calculations
      */
     constructor (density) {
-        this.viscosity = 0.01; // 
+        this.viscosity = 0.00001; // 
         this.omega = 1 / (3 * this.viscosity + 0.5);
 
         this.curr_density = density || 0;
@@ -18,6 +18,29 @@ class Block {
 
         // nothing yet
         this.initAllAttributesTo (9);
+    }
+
+
+    clone () {
+        const bclone = new Block (0);
+        bclone.viscosity = this.viscosity;
+        bclone.omega =  this.omega;
+
+        bclone.curr_velocity = this.curr_velocity.clone ();
+        bclone.prev_velocity = this.prev_velocity.clone ();
+        bclone.curr_density = this.curr_density;
+        bclone.prev_density = this.prev_density;
+        bclone.n0 = this.n0;
+        bclone.nN = this.nN;
+        bclone.nS = this.nS;
+        bclone.nE = this.nE;
+        bclone.nW = this.nW;
+        bclone.nNE = this.nNE;
+        bclone.nSE = this.nSE;
+        bclone.nNW = this.nNW;
+        bclone.nSW = this.nSW;
+
+        return bclone;
     }
 
     initAllAttributesTo (value) {
@@ -117,6 +140,7 @@ class Block {
 
     /**
      * Computes the next state using the Boltzman distribution
+     * This approximation is not using the exp function but the Taylor series up to the 3rd order instead
      */
     nextState (dt) {
         this.updateDensity ();
@@ -135,11 +159,11 @@ class Block {
         // n_new = n_old + omega * (n_equlibrum - n_old)
         // kind of messy
         // TODO : use matrix notation or vector notation (with proper projections)
-        this.n0  += this.omega * ( (1 / 4)  * rho * ( 1                                     - _1_5u2 ) - this.n0  );
-        this.nE  += this.omega * ( (1 / 9)  * rho * ( 1 + _3ux        + 4.5 * _2ux          - _1_5u2 ) - this.nE  );
-        this.nW  += this.omega * ( (1 / 9)  * rho * ( 1 - _3ux        + 4.5 * _2ux          - _1_5u2 ) - this.nW  );
-        this.nN  += this.omega * ( (1 / 9)  * rho * ( 1 + _3uy        + 4.5 * _2uy          - _1_5u2 )  - this.nN  );
-        this.nS  += this.omega * ( (1 / 9)  * rho * ( 1 - _3uy        + 4.5 * _2uy          - _1_5u2 ) - this.nS  );
+        this.n0  += this.omega * ( (4 / 9)  * rho * ( 1 +    0 +    0 +         0           - _1_5u2 ) - this.n0  );
+        this.nE  += this.omega * ( (1 / 9)  * rho * ( 1 + _3ux +    0 + 4.5 * _2ux          - _1_5u2 ) - this.nE  );
+        this.nW  += this.omega * ( (1 / 9)  * rho * ( 1 - _3ux +    0 + 4.5 * _2ux          - _1_5u2 ) - this.nW  );
+        this.nN  += this.omega * ( (1 / 9)  * rho * ( 1 + _3uy +    0 + 4.5 * _2uy          - _1_5u2 )  - this.nN  );
+        this.nS  += this.omega * ( (1 / 9)  * rho * ( 1 - _3uy +    0 + 4.5 * _2uy          - _1_5u2 ) - this.nS  );
         this.nNE += this.omega * ( (1 / 36) * rho * ( 1 + _3ux + _3uy + 4.5 * (u2 + _2uxuy) - _1_5u2 ) - this.nNE );
         this.nSE += this.omega * ( (1 / 36) * rho * ( 1 + _3ux - _3uy + 4.5 * (u2 - _2uxuy) - _1_5u2 ) - this.nSE );
         this.nNW += this.omega * ( (1 / 36) * rho * ( 1 - _3ux + _3uy + 4.5 * (u2 - _2uxuy) - _1_5u2 ) - this.nNW );

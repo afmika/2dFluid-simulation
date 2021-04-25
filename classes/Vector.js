@@ -90,4 +90,9 @@ class Vector {
 		return this.getX () + ", "+this.getY ();
 	}
 
+
+	clone () {
+		return new Vector (this.x, this.y);
+	}
+
 }
