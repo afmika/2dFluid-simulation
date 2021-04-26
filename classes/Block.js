@@ -7,7 +7,7 @@ class Block {
      * This will speed up our calculations
      */
     constructor (density) {
-        this.viscosity = 0.00001; // 
+        this.viscosity = 0.001; // 
         this.omega = 1 / (3 * this.viscosity + 0.5);
 
         this.curr_density = density || 0;
@@ -44,15 +44,15 @@ class Block {
     }
 
     initAllAttributesTo (value) {
-        this.n0  = value * (4 / 9);
-        this.nN  = value * (1 / 9);
-        this.nS  = value * (1 / 9);
-        this.nE  = value * (1 / 9);
-        this.nW  = value * (1 / 9);
-        this.nNE = value * (1 / 36);
-        this.nSE = value * (1 / 36);
-        this.nNW = value * (1 / 36);
-        this.nSW = value * (1 / 36);
+        this.n0  = value * (4 / 9) * Math.random ();
+        this.nN  = value * (1 / 9) * Math.random ();
+        this.nS  = value * (1 / 9) * Math.random ();
+        this.nE  = value * (1 / 9) * Math.random ();
+        this.nW  = value * (1 / 9) * Math.random ();
+        this.nNE = value * (1 / 36) * Math.random ();
+        this.nSE = value * (1 / 36) * Math.random ();
+        this.nNW = value * (1 / 36) * Math.random ();
+        this.nSW = value * (1 / 36) * Math.random ();
     }
     /**
      * Updates the current viscosity (set up to 0.01 by default)
@@ -79,6 +79,8 @@ class Block {
      */
     updateVelocity () {
         const rho = this.getDensity ();
+        if (rho <= 0) return;
+
         this.prev_velocity = this.curr_velocity;
         /**
          * This should explain the stuff below (value-compensation trick)
@@ -156,7 +158,12 @@ class Block {
         const u2 = _2ux + _2uy;
         const _1_5u2 = 1.5 * u2;
 
+        // if (ux != 0 || uy != 0)
+        //     console.log('HEA,', ux, uy);
+
         // n_new = n_old + omega * (n_equlibrum - n_old)
+        // since
+        // n_new - n_old = omega * (n_equlibrum - n_old)
         // kind of messy
         // TODO : use matrix notation or vector notation (with proper projections)
         this.n0  += this.omega * ( (4 / 9)  * rho * ( 1 +    0 +    0 +         0           - _1_5u2 ) - this.n0  );
@@ -193,7 +200,30 @@ class Block {
         return drho / dt;
     }
 
-    setEquilibrum (new_vel) {
-        // to do
+    /**
+     * The equilibrum state is easy
+     * it depends en rho and the macroscopic velocity
+     */
+    equilibrum () {
+        const rho = this.getDensity ();
+        const vel = this.getVelocity ();
+        const [ux, uy] = [vel.getX(), vel.getY()];
+        const _3ux = 3 * ux; 
+        const _3uy = 3 * uy;
+        const _2ux = ux * ux;
+        const _2uy = uy * uy;
+        const _2uxuy = 2 * ux * uy;
+        const u2 = _2ux + _2uy;
+        const _1_5u2 = 1.5 * u2;
+
+        this.n0  = (4 / 9)  * rho * ( 1 +    0 +    0 +         0           - _1_5u2 );
+        this.nE  = (1 / 9)  * rho * ( 1 + _3ux +    0 + 4.5 * _2ux          - _1_5u2 );
+        this.nW  = (1 / 9)  * rho * ( 1 - _3ux +    0 + 4.5 * _2ux          - _1_5u2 );
+        this.nN  = (1 / 9)  * rho * ( 1 + _3uy +    0 + 4.5 * _2uy          - _1_5u2 );
+        this.nS  = (1 / 9)  * rho * ( 1 - _3uy +    0 + 4.5 * _2uy          - _1_5u2 );
+        this.nNE = (1 / 36) * rho * ( 1 + _3ux + _3uy + 4.5 * (u2 + _2uxuy) - _1_5u2 );
+        this.nSE = (1 / 36) * rho * ( 1 + _3ux - _3uy + 4.5 * (u2 - _2uxuy) - _1_5u2 );
+        this.nNW = (1 / 36) * rho * ( 1 - _3ux + _3uy + 4.5 * (u2 - _2uxuy) - _1_5u2 );
+        this.nSW = (1 / 36) * rho * ( 1 - _3ux - _3uy + 4.5 * (u2 + _2uxuy) - _1_5u2 );
     }
 }

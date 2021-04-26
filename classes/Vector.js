@@ -33,7 +33,11 @@ class Vector {
 		let prod = u.getLength () * v.getLength ();
 		return Math.acos (dot / prod);
 	}
-	
+
+	argTheta () {
+		return Math.atan (this.getX(), this.getY());
+	}
+
 	rotate (center, angle) {
 	    let x = this.getX () - center.getX ();
 	    let y = this.getY () - center.getY ();
@@ -95,4 +99,10 @@ class Vector {
 		return new Vector (this.x, this.y);
 	}
 
+	static randomDir () {
+		return new Vector (
+			(0.1 + Math.random ()) * (Math.random () < 0.5 ? -1 : 1),
+			(0.1 + Math.random ()) * (Math.random () < 0.5 ? -1 : 1),
+		).normalize ();
+	}
 }
