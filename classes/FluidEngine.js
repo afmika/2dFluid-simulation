@@ -52,7 +52,7 @@ class FluidEngine {
     next (dim, context, dt) {
         this.collideParticles (context, dt);
         this.streamParticles ();
-        // this.flowRight ();
+        this.flowRight ();
     }
     
     flowRight () {
@@ -81,8 +81,8 @@ class FluidEngine {
             const vel = block.curr_velocity;
             const normal = vel.normalize ();
             const angle = normal.argTheta (); // [-pi/2, pi/2[
-            // let color = colorMap (angle + (Math.PI / 2), 2 * Math.PI) ;
-            let color = colorMap (rho, 1) ;
+            let color = colorMap (angle + (Math.PI / 2), Math.PI) ;
+            // let color = colorMap (rho, 1) ;
             // alert (color);
             context.fillStyle = color;
             context.fillRect (x * dim, y * dim, dim, dim);
