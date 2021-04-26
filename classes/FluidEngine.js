@@ -1,3 +1,6 @@
+let max_rho = -Infinity;
+let count = 0;
+
 /**
  * @author afmika
  */
@@ -14,18 +17,19 @@ class FluidEngine {
     }
 
     init () {
-        const sqRange = p => p >= 40 && p <= 60;
+        const sqRange = p => p >= 50 && p <= 60;
         for (let y = 0; y < this.n_row; y++) {
             this.blocks.push ([]);
             this.blocks_mirror.push ([]);
             for (let x = 0; x < this.n_col; x++) {
-                let block = null;
-                if (sqRange (x) && sqRange (y)) {
-                    block = new Block (Math.random());
-                } else {
-                    block = new Block (0);
-                }
-                block.curr_velocity = Vector.randomDir ();
+                // let block = null;
+                // if (sqRange (x) && sqRange (y)) {
+                //     block = new Block (Math.random());
+                //     block.curr_velocity = new Vector (1, 1);
+                // } else {
+                //     block = new Block (0);
+                // }
+                const block = new Block (0);
                 this.blocks[y].push (block);
                 this.blocks_mirror[y].push (this.blocks[y][x].clone ());
             }
@@ -48,7 +52,7 @@ class FluidEngine {
     next (dim, context, dt) {
         this.collideParticles (context, dt);
         this.streamParticles ();
-        this.flowRight ();
+        // this.flowRight ();
     }
     
     flowRight () {
@@ -69,6 +73,9 @@ class FluidEngine {
     collideParticles (context, dt) {
         this.eachBlock ((block, y, x) => {
             const rho = block.getDensity ();
+            max_rho = Math.max (rho, max_rho); count++;
+            if (count % 100000 == 0) 
+                console.log('max_rho so far ', max_rho);
             // context.strokeRect (x * dim, y * dim, dim, dim);
 
             const vel = block.curr_velocity;
@@ -104,8 +111,8 @@ class FluidEngine {
             'nSW' : [1, -1], 'nSE' : [1, 1],
             'nNW' : [-1, -1], 'nNE' : [-1, 1]
         };
-        for (let y = 1; y < this.n_row - 1; y++) {
-            for (let x = 1; x < this.n_col - 1; x++) {
+        for (let y = 0; y < this.n_row; y++) {
+            for (let x = 0; x < this.n_col; x++) {
                 for (let d in dir) {
                     const [dy, dx] = dir [d];
                     const [nei_y, nei_x] = [y + dy, x + dx];
@@ -117,5 +124,11 @@ class FluidEngine {
                 }
             }
         }
+    }
+
+
+    modifyBlockAt (x, y, velocity) {
+        this.blocks[y][x] = new Block (0.001);
+        this.blocks[y][x].curr_velocity = velocity;
     }
 }
